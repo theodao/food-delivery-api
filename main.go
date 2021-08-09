@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
+	"net/http"
 	"os"
+	"strconv"
 )
-
-// Command to create a new table
-//_ = db.Exec("CREATE TABLE notes ( id int(11) NOT NULL AUTO_INCREMENT, title varchar(100) NOT NULL, content text, image json DEFAULT NULL, has_finised tinyint(1) DEFAULT '0', status int(11) DEFAULT '1', created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id))\n")
 
 type Note struct {
 	Id      int    `json:"id,omitempty" gorm:"column:id;"`
@@ -17,8 +16,77 @@ type Note struct {
 	Content string `json:"content" gorm:"column:content;"`
 }
 
+type Restaurant struct {
+	Id   int    `json:"id" gorm:"column:id;"`
+	Name string `json:"name" gorm:"column: name;"`
+	Addr string `json:"address" gorm:"column: addr;"`
+}
+
+func (Restaurant) TableName() string {
+	return "restaurants"
+}
+
 func (Note) TableName() string {
 	return "notes"
+}
+
+func runService(db *gorm.DB) error {
+	r := gin.Default()
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"messsage": "pong",
+		})
+	})
+
+	// CRUD
+	restaurants := r.Group("/restaurants")
+	{
+		restaurants.POST("", func(c *gin.Context) {
+			var data Restaurant
+			if err := c.ShouldBind(&data); err != nil {
+				c.JSON(401, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+
+			if err := db.Create(&data).Error; err != nil {
+				c.JSON(401, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+
+			c.JSON(http.StatusOK, data)
+		})
+
+		restaurants.GET("/:id", func(c *gin.Context) {
+			id, err := strconv.Atoi(c.Param("id"))
+
+			if err != nil {
+				c.JSON(401, gin.H{
+					"error": err.Error(),
+				})
+			}
+
+			var data Restaurant
+
+			if err := db.Where("id = ?", id).First(&data).Error; err != nil {
+				c.JSON(401, gin.H{
+					"error": err.Error(),
+				})
+
+				return
+			}
+
+			c.JSON(http.StatusOK, data)
+		})
+	}
+
+	return r.Run()
 }
 
 func main() {
@@ -27,29 +95,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Fail to run ")
 	}
-	// Insert new note
-	//newNote := Note{Title: "Demo note", Content: "This is content of demo note"}
-	//if err := db.Create(&newNote); err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Println(newNote)
 
-	// Select note
-	var notes []Note
-	db.Where("status = ?", 1).Find(&notes)
-
-	var note Note
-	if err := db.Where("id = ?", 4).First(&note); err != nil {
-		log.Println(err)
+	if err := runService(db); err != nil {
+		log.Fatalln(err)
 	}
-
-	fmt.Println(notes)
-
-	// Delete note
-	db.Table(Note{}.TableName()).Where("id = 4").Delete(nil)
-
-	// Update note
-	db.Table(Note{}.TableName()).Where("id = 3").Updates(map[string]interface{}{
-		"title": "Demo 2",
-	})
 }
