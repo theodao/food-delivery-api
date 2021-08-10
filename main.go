@@ -26,7 +26,7 @@ func runService(db *gorm.DB) error {
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"messsage": "pong",
+			"message": "pong",
 		})
 	})
 
@@ -35,81 +35,7 @@ func runService(db *gorm.DB) error {
 	restaurants := r.Group("/restaurants")
 	{
 		restaurants.POST("", ginrestaurant.CreateRestaurant(appCtx))
-
-		//restaurants.GET("/:id", func(c *gin.Context) {
-		//	id, err := strconv.Atoi(c.Param("id"))
-		//
-		//	if err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//	}
-		//
-		//	var data Restaurant
-		//
-		//	if err := db.Where("id = ?", id).First(&data).Error; err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//
-		//		return
-		//	}
-		//
-		//	c.JSON(http.StatusOK, data)
-		//})
-
-		//restaurants.GET("", func(c *gin.Context) {
-		//	var data []Restaurant
-		//
-		//	type Filter struct {
-		//		CityId int `json:"city_id" form:"city_id"`
-		//	}
-		//
-		//	var filter Filter
-		//	c.ShouldBind(&filter)
-		//	newDb := db
-		//
-		//	if filter.CityId > 0 {
-		//		newDb = db.Where("city_id = ?", filter.CityId)
-		//	}
-		//
-		//	if err := newDb.Find(&data).Error; err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//
-		//		return
-		//	}
-		//
-		//	c.JSON(http.StatusOK, data)
-		//})
-
-		//restaurants.PUT("/:id", func(c *gin.Context) {
-		//	id, err := strconv.Atoi(c.Param("id"))
-		//
-		//	if err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//	}
-		//
-		//	var data RestaurantUpdate
-		//	if err := c.ShouldBind(&data); err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//		return
-		//	}
-		//
-		//	if err := db.Where("id = ?", id).Updates(&data).Error; err != nil {
-		//		c.JSON(401, gin.H{
-		//			"error": err.Error(),
-		//		})
-		//		return
-		//	}
-		//
-		//	c.JSON(http.StatusOK, gin.H{"ok": 1})
-		//})
+		restaurants.GET("", ginrestaurant.ListRestaurant(appCtx))
 	}
 
 	return r.Run()

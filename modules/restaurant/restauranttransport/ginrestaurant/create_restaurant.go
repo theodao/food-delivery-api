@@ -2,6 +2,7 @@ package ginrestaurant
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-api-training/common"
 	"go-api-training/component"
 	"go-api-training/modules/restaurant/restaurantbiz"
 	"go-api-training/modules/restaurant/restaurantmodel"
@@ -21,8 +22,8 @@ func CreateRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 		}
 
 		store := restaurantstore.NewSQLStore(appCtx.GetMainDBConnection())
-		biz := restaurantbiz.CreateRestaurantStore(store)
-		if err := biz.Create(c.Request.Context(), &data); err != nil {
+		biz := restaurantbiz.NewCreateRestaurantBiz(store)
+		if err := biz.CreateRestaurant(c.Request.Context(), &data); err != nil {
 			c.JSON(401, gin.H{
 				"error": err.Error(),
 			})
@@ -30,6 +31,6 @@ func CreateRestaurant(appCtx component.AppContext) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, data)
+		c.JSON(http.StatusOK, common.NewSimpleSuccessResponse(&data))
 	}
 }

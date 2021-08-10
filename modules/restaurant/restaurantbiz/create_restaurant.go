@@ -9,12 +9,9 @@ type CreateRestaurantStore interface {
 	Create(ctx context.Context, data *restaurantmodel.RestaurantCreate) error
 }
 
+// Create Restaurant Biz Class
 type createRestaurantBiz struct {
 	store CreateRestaurantStore
-}
-
-func newCreateRestaurantBiz(store CreateRestaurantStore) *createRestaurantBiz {
-	return &createRestaurantBiz{store: store}
 }
 
 func (biz *createRestaurantBiz) CreateRestaurant(ctx context.Context, data *restaurantmodel.RestaurantCreate) error {
@@ -25,4 +22,9 @@ func (biz *createRestaurantBiz) CreateRestaurant(ctx context.Context, data *rest
 	err := biz.store.Create(ctx, data)
 
 	return err
+}
+
+// NewCreateRestaurantBiz Export new instance of CreateRestaurantBizz Class
+func NewCreateRestaurantBiz(store CreateRestaurantStore) *createRestaurantBiz {
+	return &createRestaurantBiz{store: store}
 }
